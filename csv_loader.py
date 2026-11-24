@@ -1,7 +1,7 @@
 """Reading CSV files into flight records and error messages."""
 
 import csv
-import os   # demandé à l'IA : seulement pour os.path.basename
+import os   #demandé à l'IA : seulement pour os.path.basename
 
 from validator import validate_row, to_record
 
