@@ -20,7 +20,7 @@ def parse_files(paths: list[str], airports: set[str]) -> tuple[list[dict], list[
     """
     records = []
     errors = []
-    seen = set()   # couples (flight_id, departure_datetime) des lignes VALIDES déjà vues
+    seen = set()   #couples (flight_id, departure_datetime) des lignes VALIDES déjà vues
 
     for path in paths:
         # demandé à l'IA : os.path.basename("data/db.csv") renvoie "db.csv"
