@@ -1,13 +1,16 @@
 """Row validation: airport list loading, single-row checks, record building."""
-# j'ai demandé à claude si j'avais besoin d'importer des bibliothès et m'a proposé celle ci
-# et j'ai demanddé de verifé si c'était autorisé par l'ennoncé voici sa réponse:
-#Oui, tu peux les ajouter. La consigne interdit les bibliothèques tierces, c’est-à-dire celles
-#  qu’on installe avec pip comme pandas. Elle impose la bibliothèque standard, celle qui est
-#  livrée avec Python. math et datetime en font partie, comme csv, json, logging, argparse et re
+
+# I asked Claude whether I needed to import libraries, and it suggested these.
+# I also asked it to check whether they were allowed by the assignment. Here is its answer:
+# "Yes, you can add them. The instructions forbid third-party libraries, meaning those
+# installed with pip like pandas. They require the standard library, the one shipped
+# with Python. math and datetime are part of it, like csv, json, logging, argparse and re."
 import math
 from datetime import datetime
-# I ask if have had need of other function and he give create detetime_format and valid datetime
-# I completed the body of these functions
+
+
+# I asked if I needed other functions, and the AI suggested creating
+# _has_datetime_format and _is_valid_datetime. I completed the body of these functions.
 def _has_datetime_format(text):
     if len(text) != 16:
         return False
@@ -32,34 +35,36 @@ def _is_valid_datetime(text):
     if not _has_datetime_format(text):
         return False
     try:
+        # asked to the AI: datetime.strptime(text, format) raises a ValueError if the
+        # date does not really exist (month 13, February 30, hour 24...)
         datetime.strptime(text, "%Y-%m-%d %H:%M")
     except ValueError:
         return False
     return True
-# I tried to run the code but I forgot certain function and 
-# claude said me to add that (He give me only structure and I completed):
 
 
-
+# I tried to run the code but some functions were missing, so the AI told me to
+# add them (it only gave me the structure and I completed the bodies):
 def _is_ascii_letters_digits(text):
-    # Parcourir chaque caractère de text
+    # Go through each character of text
     for ch in text:
-        # Si ch n'est ni une lettre a-z, ni une lettre A-Z, ni un chiffre 0-9 -> False
+        # If ch is not a letter a-z, not a letter A-Z and not a digit 0-9 -> False
         if not ("a" <= ch <= "z" or "A" <= ch <= "Z" or "0" <= ch <= "9"):
             return False
     return True
 
 
 def _is_airport_code(code, airports):
-    # Un code d'aéroport a exactement 3 caractères
+    # An airport code has exactly 3 characters
     if len(code) != 3:
         return False
-    # Chaque caractère doit être une lettre majuscule A-Z
+    # Each character must be an uppercase letter A-Z
     for ch in code:
         if not ("A" <= ch <= "Z"):
             return False
-    # Enfin, le code doit exister dans la liste des aéroports
+    # Finally, the code must exist in the airport list
     return code in airports
+
 
 def load_airports(path: str) -> set[str]:
     """Read an airport list file and return the set of codes.
@@ -67,15 +72,15 @@ def load_airports(path: str) -> set[str]:
     One code per line. Strip whitespace; skip blank lines and lines
     starting with '#'.
     """
-  
     with open(path, "r", encoding="utf-8") as f:
         lines = [line.strip() for line in f]
-    return {l for l in lines if l != "" and l[0] != "#"}
+    return {line for line in lines if line != "" and line[0] != "#"}
 
-# voici le prompte demandé : « Sans écrire de code, donne-moi la structure de validate_row :
-#  l’ordre des étapes, ce que chacune vérifie, et le code d’erreur renvoyé. »
-#« Découpe validate_row en petites fonctions auxiliaires et dis-moi laquelle écrire en premier. »
-#« Donne-moi un squelette avec uniquement les if et des commentaires # TODO, je remplis les conditions moi-même. »
+
+# Here is the prompt I used: "Without writing any code, give me the structure of
+# validate_row: 'Split validate_row into small helper functions and tell me which
+# one to write first.' 'Give me a skeleton with only the ifs and # TODO comments,
+# I will fill in the conditions myself.'"
 def validate_row(fields: list[str], airports: set[str]) -> str | None:
     """Check one CSV row (fields as returned by csv.reader, not yet stripped).
 
@@ -83,83 +88,85 @@ def validate_row(fields: list[str], airports: set[str]) -> str | None:
     FIRST failing check (checks 1-11 in the specification, in order).
     Does not check for duplicates.
     """
-      
-        # 1. Le nombre de champs doit être exactement 6
+    # 1. The number of fields must be exactly 6
     if len(fields) != 6:
         return "WRONG_FIELD_COUNT"
 
-    # Nettoyer les champs (strip) dans une nouvelle liste values
+    # Clean the fields (strip) into a new list called values
     values = [field.strip() for field in fields]
 
-    # 2. Aucun champ ne doit être vide après nettoyage
+    # 2. No field may be empty after cleaning
     for v in values:
         if v == "":
             return "MISSING_FIELD"
 
-    # Donner un nom à chaque valeur
+    # Give a name to each value
     flight_id, origin, destination, departure, arrival, price = values
 
-    # 3. flight_id : entre 2 et 8 caractères, uniquement lettres/chiffres ASCII
+    # 3. flight_id: between 2 and 8 characters, only ASCII letters/digits
     if not (2 <= len(flight_id) <= 8 and _is_ascii_letters_digits(flight_id)):
         return "INVALID_FLIGHT_ID"
 
-    # 4. origin : code d'aéroport valide
+    # 4. origin: valid airport code
     if not _is_airport_code(origin, airports):
         return "INVALID_ORIGIN"
 
-    # 5. destination : code d'aéroport valide
+    # 5. destination: valid airport code
     if not _is_airport_code(destination, airports):
         return "INVALID_DESTINATION"
 
-    # 6. origin et destination doivent être différents
+    # 6. origin and destination must be different
     if origin == destination:
-        return "SAME_ORIGIN_DESTINATION"  
-      
-      
-       # 7
+        return "SAME_ORIGIN_DESTINATION"
+
+    # 7. departure must be a real date/time in the exact format
     if not _is_valid_datetime(departure):
         return "INVALID_DEPARTURE"
-    # 8
+
+    # 8. arrival must be a real date/time in the exact format
     if not _is_valid_datetime(arrival):
         return "INVALID_ARRIVAL"
-    # 9
+
+    # 9. arrival must be after departure (same format, so text comparison works)
     if arrival <= departure:
         return "ARRIVAL_NOT_AFTER_DEPARTURE"
-    # 10
+
+    # 10. price must be a finite number
     try:
         price_value = float(price)
     except ValueError:
         return "INVALID_PRICE"
+    # asked to the AI: math.isfinite(x) is False for nan, inf and -inf
     if not math.isfinite(price_value):
         return "INVALID_PRICE"
-    # 11
+
+    # 11. price must be strictly positive
     if price_value <= 0:
         return "NON_POSITIVE_PRICE"
 
     return None
 
 
-#ok donne moi le squelette de to_record pour que je puisse le compléter moi même s'il te plaît
-#claude give the squelette and I adding the body
-
+# I asked: "ok, give me the skeleton of to_record so that I can complete it myself please".
+# The AI gave the skeleton and I added the body.
 def to_record(fields: list[str]) -> dict:
     """Turn a valid row into a flight record dictionary.
 
     Keys: flight_id, origin, destination, departure_datetime,
     arrival_datetime (stripped strings) and price (float).
     """
-    # 1. Nettoyer les 6 champs : enlever les espaces au début et à la fin de chacun
+    # 1. Clean the 6 fields: remove the spaces at the start and end of each one
     values = [field.strip() for field in fields]
 
-    # 2. Construire le dictionnaire avec les 6 clés exactes du sujet
+    # 2. Build the dictionary with the 6 exact keys of the assignment
     record = {
         "flight_id": values[0],
         "origin": values[1],
         "destination": values[2],
         "departure_datetime": values[3],
         "arrival_datetime": values[4],
-        "price": float(values[5]),   # attention : ce doit être un nombre, pas une chaîne
+        "price": float(values[5]),   # careful: this must be a number, not a string
     }
 
-    # 3. Retourner le dictionnaire
+    # 3. Return the dictionary
     return record
