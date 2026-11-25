@@ -1,9 +1,12 @@
 """Reading CSV files into flight records and error messages."""
 
 import csv
-import os   #demandé à l'IA : seulement pour os.path.basename
+import os   # asked to the AI: only used for os.path.basename
 
 from validator import validate_row, to_record
+
+# As described in AI_USAGE.md: I asked the AI for the skeleton (the structure
+# to complete), and then I wrote the rest of the code myself.
 
 
 def parse_files(paths: list[str], airports: set[str]) -> tuple[list[dict], list[str]]:
@@ -20,36 +23,36 @@ def parse_files(paths: list[str], airports: set[str]) -> tuple[list[dict], list[
     """
     records = []
     errors = []
-    seen = set()   #couples (flight_id, departure_datetime) des lignes VALIDES déjà vues
+    seen = set()   # (flight_id, departure_datetime) pairs of the VALID rows already seen
 
     for path in paths:
-        # demandé à l'IA : os.path.basename("data/db.csv") renvoie "db.csv"
+        # asked to the AI: os.path.basename("data/db.csv") returns "db.csv"
         filename = os.path.basename(path)
 
         with open(path, "r", encoding="utf-8") as f:
             lines = f.readlines()
 
         for number, line in enumerate(lines, start=1):
-            # 1. Ligne 1 = en-tête -> passer à la ligne suivante
-            # À COMPLÉTER (if ... : continue)
+            # 1. Line 1 = header -> go to the next line
+            # (the AI's skeleton explained what to do here; I wrote the if ...: continue myself)
             if number == 1:
                 continue
 
-            # 2. Ligne vide / que des espaces, ou commentaire
+            # 2. Empty line / only spaces, or comment line
             text = line.strip()
-            if text == "" or text.startswith("#"):
+            if text == "" or text[0] == "#":
                 continue
 
-            # 3. Enlever seulement le "\n" de fin (pour le message d'erreur)
-            line = line.rstrip("\r\n")
+            # 3. Remove only the final "\n" (for the error message)
+            line = line.replace("\n", "")
 
-            # 4. Découper la ligne avec le module csv
+            # 4. Split the line with the csv module
             fields = list(csv.reader([line]))[0]
 
-            # 5. Contrôles 1 à 11
+            # 5. Checks 1 to 11
             code = validate_row(fields, airports)
 
-            # 6. Si valide : record + vérification du doublon
+            # 6. If valid: build the record + check for a duplicate
             if code is None:
                 record = to_record(fields)
                 key = (record["flight_id"], record["departure_datetime"])
@@ -59,7 +62,7 @@ def parse_files(paths: list[str], airports: set[str]) -> tuple[list[dict], list[
                     seen.add(key)
                     records.append(record)
 
-            # 7. Si invalide : ajouter le message à errors
+            # 7. If invalid: add the message to errors
             if code is not None:
                 errors.append(
                     filename + ":" + str(number) + ": " + code + " | " + line.strip()
