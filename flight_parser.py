@@ -4,8 +4,8 @@ Run from the project folder, for example:
     python flight_parser.py -i data/db.csv -a data/airports.txt
 """
 
-# Here the AI helped me, but I wrote more of the structure than usual, and the
-# body as well; the AI guided me less in the skeleton.
+#Here the AI helped me, but I wrote more of the structure than usual, and the
+#body as well; the AI guided me less in the skeleton.
 
 import argparse
 import json
@@ -18,7 +18,7 @@ from validator import load_airports
 from csv_loader import parse_files
 from query import run_queries
 
-# Student details: plain ASCII, no spaces or underscores.
+#Student details: plain ASCII, no spaces or underscores.
 STUDENT_ID = "260ADB178"
 FIRST_NAME = "Paul"
 LAST_NAME = "Alberti"
