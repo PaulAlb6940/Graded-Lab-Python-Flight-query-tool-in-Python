@@ -82,9 +82,9 @@ def main(argv: list[str] | None = None) -> int:
     handler = None
     try:
         if args.j is not None:
-            # 3a. -j mode: load the database, which must be a list of dictionaries
-            # asked to the AI: isinstance(x, type) checks the type of a value,
-            # and raise ValueError(...) triggers an error caught below
+            #3a. -j mode: load the database, which must be a list of dictionaries
+            #asked to the AI: isinstance(x, type) checks the type of a value,
+            #and raise ValueError(...) triggers an error caught below
             db = _load_json(args.j)
             if not isinstance(db, list):
                 raise ValueError("database must be a JSON array")
@@ -92,7 +92,7 @@ def main(argv: list[str] | None = None) -> int:
                 if not isinstance(item, dict):
                     raise ValueError("database must contain only objects")
         else:
-            # 3b. -i / -d mode: list of the CSV paths
+            #3b. -i / -d mode: list of the CSV paths
             if args.i is not None:
                 paths = [args.i]
             else:
@@ -102,15 +102,15 @@ def main(argv: list[str] | None = None) -> int:
 
             airports = load_airports(args.a)
 
-            # database path: -o if given, otherwise "db.json"
+            #database path: -o if given, otherwise "db.json"
             if args.o is not None:
                 db_path = args.o
             else:
                 db_path = "db.json"
-            # errors.log in the same folder as the database (asked to the AI: os.path.dirname)
+            #errors.log in the same folder as the database (asked to the AI: os.path.dirname)
             log_path = os.path.join(os.path.dirname(db_path), "errors.log")
 
-            # configuration required by the assignment
+            #configuration required by the assignment
             logger.setLevel(logging.INFO)
             handler = logging.FileHandler(log_path, mode="w", encoding="utf-8")
             handler.setFormatter(logging.Formatter(
@@ -118,14 +118,14 @@ def main(argv: list[str] | None = None) -> int:
             logger.addHandler(handler)
 
             db, errors = parse_files(paths, airports)
-            # one WARNING per error message, in order
+            #one WARNING per error message, in order
             for message in errors:
                 logger.warning(message)
-            # write db into db_path with json.dump (course 10, slide 12)
+            #write db into db_path with json.dump (course 10, slide 12)
             with open(db_path, "w", encoding="utf-8") as f:
                 json.dump(db, f)
 
-        # 4. Queries (-q): an object or a list, otherwise error
+        #4. Queries (-q): an object or a list, otherwise error
         if args.q is not None:
             queries = _load_json(args.q)
             if not isinstance(queries, (dict, list)):
@@ -141,13 +141,13 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     except (OSError, ValueError) as e:
-        # file not found / unreadable, invalid JSON, wrong structure -> code 1
-        # asked to the AI: file=sys.stderr writes to the error output
+        #file not found / unreadable, invalid JSON, wrong structure -> code 1
+        #asked to the AI: file=sys.stderr writes to the error output
         print(f"Error: {e}", file=sys.stderr)
         return 1
 
     finally:
-        # ALWAYS remove and close the handler, even after an error
+        #ALWAYS remove and close the handler, even after an error
         if handler is not None:
             logger.removeHandler(handler)
             handler.close()
